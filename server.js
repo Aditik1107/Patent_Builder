@@ -98,7 +98,7 @@ app.post('/api/register', authLimiter, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: 'Registration failed: ' + (err.message || err.details || 'Database connection error') });
   }
 });
 
