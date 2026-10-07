@@ -25,10 +25,7 @@ const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['patent-secret-key-123'],
-  maxAge: 24 * 60 * 60 * 1000, // 1 day
-  httpOnly: true,
-  sameSite: 'lax', // Changed from strict to lax to ensure redirects work well
-  secure: process.env.NODE_ENV === 'production' // secure cookies on Vercel
+  maxAge: 24 * 60 * 60 * 1000 // 1 day
 }));
 
 // Rate limiting for auth
@@ -40,7 +37,7 @@ const authLimiter = rateLimit({
 
 // Auth check middleware
 const requireAuth = (req, res, next) => {
-  if (req.session.userId) return next();
+  if (req.session && req.session.userId) return next();
   res.status(401).json({ error: 'Unauthorized. Please log in.' });
 };
 
@@ -133,7 +130,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/me', (req, res) => {
-  if (req.session.userId) {
+  if (req.session && req.session.userId) {
     res.json({ loggedIn: true, username: req.session.username });
   } else {
     res.json({ loggedIn: false });
