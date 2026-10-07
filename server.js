@@ -4,7 +4,7 @@ const path = require('path');
 const { generateDraft, extractFromText } = require('./lib/generate');
 const { buildDocx } = require('./lib/buildDocx');
 
-const session = require('express-session');
+// Session handling replaced with cookie-session below
 const bcrypt = require('bcryptjs');
 const { sql } = require('./lib/db');
 
@@ -19,11 +19,15 @@ const upload = multer({ dest: os.tmpdir() });
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
-app.use(session({
-  secret: 'patent-secret-key-123',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' } // 1 day, secure cookies
+const cookieSession = require('cookie-session');
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['patent-secret-key-123'],
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+  httpOnly: true,
+  sameSite: 'lax', // Changed from strict to lax to ensure redirects work well
+  secure: process.env.NODE_ENV === 'production' // secure cookies on Vercel
 }));
 
 // Rate limiting for auth
@@ -123,7 +127,7 @@ app.post('/api/login', authLimiter, async (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy();
+  req.session = null;
   res.json({ success: true });
 });
 
