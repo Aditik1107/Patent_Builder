@@ -6,7 +6,7 @@ const { buildDocx } = require('./lib/buildDocx');
 
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const db = require('./lib/db');
+const { sql } = require('./lib/db');
 
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
@@ -86,19 +86,18 @@ app.post('/api/register', authLimiter, async (req, res) => {
     if (!isStrongPassword(password)) return res.status(400).json({ error: 'Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number.' });
 
     const hash = await bcrypt.hash(password, 10);
-    const { data, error } = await db.from('users').insert([{ username, password: hash }]);
-    
-    if (error) {
-      if (error.code === '23505') { // Postgres unique violation code
+    try {
+      await sql`INSERT INTO users (username, password) VALUES (${username}, ${hash})`;
+      res.json({ success: true });
+    } catch (err) {
+      if (err.code === '23505') { // Postgres unique violation
         return res.status(400).json({ error: 'Username already exists' });
       }
-      throw error;
+      throw err;
     }
-    
-    res.json({ success: true });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed: ' + (err.message || err.details || 'Database connection error') });
+    res.status(500).json({ error: 'Registration failed: ' + (err.message || 'Database connection error') });
   }
 });
 
@@ -107,8 +106,9 @@ app.post('/api/login', authLimiter, async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
 
-    const { data: user, error } = await db.from('users').select('*').eq('username', username).single();
-    if (error || !user) return res.status(401).json({ error: 'Invalid credentials' });
+    const users = await sql`SELECT * FROM users WHERE username = ${username} LIMIT 1`;
+    const user = users[0];
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
@@ -140,12 +140,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- Drafts API ---
 app.get('/api/drafts', requireAuth, async (req, res) => {
   try {
-    const { data: drafts, error } = await db.from('drafts')
-      .select('id, title, updated_at')
-      .eq('user_id', req.session.userId)
-      .order('updated_at', { ascending: false });
-      
-    if (error) throw error;
+    const drafts = await sql`SELECT id, title, updated_at FROM drafts WHERE user_id = ${req.session.userId} ORDER BY updated_at DESC`;
     res.json(drafts || []);
   } catch (err) {
     console.error('Fetch drafts error:', err);
@@ -155,13 +150,9 @@ app.get('/api/drafts', requireAuth, async (req, res) => {
 
 app.get('/api/drafts/:id', requireAuth, async (req, res) => {
   try {
-    const { data: draft, error } = await db.from('drafts')
-      .select('*')
-      .eq('id', req.params.id)
-      .eq('user_id', req.session.userId)
-      .single();
-      
-    if (error || !draft) return res.status(404).json({ error: 'Draft not found' });
+    const drafts = await sql`SELECT * FROM drafts WHERE id = ${req.params.id} AND user_id = ${req.session.userId} LIMIT 1`;
+    const draft = drafts[0];
+    if (!draft) return res.status(404).json({ error: 'Draft not found' });
     res.json(draft);
   } catch (err) {
     console.error('Fetch draft error:', err);
@@ -176,22 +167,23 @@ app.post('/api/drafts', requireAuth, async (req, res) => {
     
     if (id) {
       // Update existing
-      const { data, error } = await db.from('drafts')
-        .update({ title, problem, solution, components, results, updated_at: now })
-        .eq('id', id)
-        .eq('user_id', req.session.userId)
-        .select();
+      const updated = await sql`
+        UPDATE drafts SET title = ${title}, problem = ${problem}, solution = ${solution}, components = ${components}, results = ${results}, updated_at = ${now}
+        WHERE id = ${id} AND user_id = ${req.session.userId}
+        RETURNING id
+      `;
         
-      if (error || !data || data.length === 0) return res.status(404).json({ error: 'Draft not found' });
+      if (!updated || updated.length === 0) return res.status(404).json({ error: 'Draft not found' });
       res.json({ success: true, id });
     } else {
       // Insert new
-      const { data, error } = await db.from('drafts')
-        .insert([{ user_id: req.session.userId, title, problem, solution, components, results, updated_at: now }])
-        .select();
+      const inserted = await sql`
+        INSERT INTO drafts (user_id, title, problem, solution, components, results, updated_at)
+        VALUES (${req.session.userId}, ${title}, ${problem}, ${solution}, ${components}, ${results}, ${now})
+        RETURNING id
+      `;
         
-      if (error) throw error;
-      res.json({ success: true, id: data[0].id });
+      res.json({ success: true, id: inserted[0].id });
     }
   } catch (err) {
     console.error('Save draft error:', err);
@@ -201,12 +193,7 @@ app.post('/api/drafts', requireAuth, async (req, res) => {
 
 app.delete('/api/drafts/:id', requireAuth, async (req, res) => {
   try {
-    const { error } = await db.from('drafts')
-      .delete()
-      .eq('id', req.params.id)
-      .eq('user_id', req.session.userId);
-      
-    if (error) throw error;
+    await sql`DELETE FROM drafts WHERE id = ${req.params.id} AND user_id = ${req.session.userId}`;
     res.json({ success: true });
   } catch (err) {
     console.error('Delete draft error:', err);
