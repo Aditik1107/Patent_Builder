@@ -17,6 +17,7 @@ const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 
 const app = express();
+app.set('trust proxy', 1); // Trust Vercel's proxy so secure cookies work
 app.use(express.json({ limit: '50mb' }));
 
 const cookieSession = require('cookie-session');
