@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-width=1.0">
+  <title>VIT Patent Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glow-background"></div>
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <div class="sidebar-left">
+      <div class="sidebar-title">VIT Patent Studio</div>
+      
+      <div class="nav-section">
+        <div class="nav-label">Explore</div>
+        <div class="nav-item active" id="nav-playground">✨ Playground</div>
+        <div class="nav-item" id="dashboard-btn">🗂️ History</div>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-label">Manage</div>
+        <div class="nav-item" id="logout-btn">🚪 Logout</div>
+      </div>
+    </div>
+
+    <!-- Main Center Area -->
+    <div class="main-area">
+      <div class="main-header">
+        <span id="welcome-text"></span>
+      </div>
+      
+      <div class="playground-content">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" style="display: none;">
+          <h2>Draft History</h2>
+          <div id="drafts-list" style="display: flex; flex-direction: column; gap: 10px;">
+            <p>Loading...</p>
+          </div>
+          <button type="button" id="new-draft-btn" class="primary-btn" style="margin-top: 20px;">+ Create New Draft</button>
+        </div>
+
+        <!-- Form View -->
+        <form id="patent-form">
+          <input type="hidden" id="draft-id" value="">
+          <input type="file" id="ppt-file" accept=".pptx,.ppt" style="display: none;">
+          
+          <h1 id="main-title" style="text-align: center; margin-bottom: 40px; font-weight: 300;">Draft with Gemini 3 Flash</h1>
+          
+          <div style="margin-bottom: 20px;">
+            <label for="title">Working Title (Optional)</label>
+            <input type="text" id="title" placeholder="A system and method for..." maxlength="200">
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label for="problem">Problem Statement</label>
+            <textarea id="problem" placeholder="Describe the problem you are solving..." rows="3" required></textarea>
+            <div class="char-count"><span id="problem-count">0</span>/3000</div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label for="solution">Solution / Approach</label>
+            <textarea id="solution" placeholder="Describe how your invention works in detail..." rows="5" required></textarea>
+            <div class="char-count"><span id="solution-count">0</span>/6000</div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label for="components">Components / Tech Stack (Optional)</label>
+            <textarea id="components" placeholder="IoT sensors, React frontend, Python backend..." rows="2"></textarea>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label for="results">Real Results / Test Data (Optional)</label>
+            <textarea id="results" placeholder="The model achieved 95% accuracy..." rows="2"></textarea>
+          </div>
+
+          <div id="error-msg" class="error" style="display:none;"></div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: center;">
+            <button type="button" id="save-draft-btn" class="secondary-btn">💾 Save</button>
+            <button type="button" id="upload-ppt-btn" class="secondary-btn">📄 Extract PPT</button>
+            <button type="button" id="fill-sample-btn" class="secondary-btn">✨ Sample</button>
+          </div>
+        </form>
+
+        <div id="result-container" style="display: none; text-align: center; margin-top: 40px;">
+          <h2 style="color: var(--accent-blue);">Draft Ready!</h2>
+          <p style="color: var(--text-muted); margin-bottom: 20px;">Your document has been downloaded.</p>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button type="button" id="download-btn" class="primary-btn">Download Again</button>
+            <button type="button" id="reset-btn" class="secondary-btn">Generate Another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="sidebar-right">
+      <div class="settings-header">
+        <span>Run settings</span>
+      </div>
+      
+      <div class="settings-card">
+        <label style="color: var(--text-main); font-weight: 500; font-size: 1em;">Model</label>
+        <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">Gemini 3 Flash Preview<br>Provides baseline speed and intelligence for patent drafting.</p>
+      </div>
+
+      <div class="settings-card">
+        <label for="department" style="color: var(--text-main); font-weight: 500; font-size: 1em;">Department</label>
+        <input type="text" id="department" value="Department of Computer Science & Engineering" required style="margin-top: 10px; margin-bottom: 0;">
+      </div>
+      
+      <div class="settings-card">
+        <label style="color: var(--text-main); font-weight: 500; font-size: 1em;">Inventors</label>
+        <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 15px;">Add up to 8 inventors.</p>
+        <div id="inventors-container">
+          <!-- JS populates this -->
+        </div>
+        <button type="button" id="add-inventor" class="secondary-btn" style="width: 100%; margin-top: 10px;">+ Add Inventor</button>
+      </div>
+
+      <button type="submit" form="patent-form" id="submit-btn" class="primary-btn" style="width: 100%; padding: 15px; margin-top: auto; font-size: 1.05em; background-color: var(--accent-blue);">Run Generation</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

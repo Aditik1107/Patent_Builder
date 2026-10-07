@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - VIT Patent Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { 
+      display: flex; justify-content: center; align-items: center; 
+      min-height: 100vh; background: #000000; margin: 0;
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #e3e3e3;
+      overflow: hidden;
+      position: relative;
+    }
+    .glow-background {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: conic-gradient(
+        #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000
+      );
+      filter: blur(100px);
+      z-index: 0;
+      pointer-events: none;
+      animation: spinGlowLogin 12s linear infinite;
+      opacity: 0.45;
+    }
+    @keyframes spinGlowLogin {
+      0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+      50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.1); }
+      100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+    }
+    .auth-wrapper {
+      width: 100%; max-width: 420px; padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-container { 
+      background: rgba(30, 31, 32, 0.65); padding: 40px; border-radius: 12px; 
+      backdrop-filter: blur(25px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8); 
+      border-top: 5px solid #a8c7fa;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .auth-container h2 { margin-top: 0; color: #e3e3e3; font-size: 1.8em; margin-bottom: 25px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    .auth-container input { 
+      width: 100%; padding: 14px; margin-bottom: 20px; 
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; 
+      box-sizing: border-box; font-size: 16px; transition: all 0.3s ease;
+      background: rgba(0,0,0,0.4); color: #e3e3e3;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .auth-container input:focus {
+      border-color: #a8c7fa; outline: none;
+      background: rgba(0,0,0,0.6);
+      box-shadow: 0 0 0 3px rgba(168, 199, 250, 0.15), inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .auth-container button { 
+      width: 100%; padding: 14px; font-size: 16px; font-weight: 600;
+      background: linear-gradient(135deg, #a8c7fa, #8ab4f8); color: #000; border: none;
+      border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(168, 199, 250, 0.3);
+    }
+    .auth-container button:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(168, 199, 250, 0.5);
+      background: linear-gradient(135deg, #b9d3fb, #9bc0f9);
+    }
+    .auth-container button:disabled { background: #3c4043; cursor: not-allowed; box-shadow: none; transform: none; color: #777;}
+    .auth-switch { margin-top: 25px; font-size: 0.95em; color: #a8a8a8; }
+    .auth-switch a { color: #a8c7fa; cursor: pointer; text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+    .auth-switch a:hover { text-decoration: underline; color: #fff; }
+    .error { color: #ff8a8a; background: rgba(255, 138, 138, 0.1); padding: 10px; border-radius: 4px; font-size: 0.9em; display: none; margin-bottom: 15px; border: 1px solid rgba(255, 138, 138, 0.3); }
+    .error.active { display: block; }
+    .brand-subtitle { font-size: 0.9em; color: #a8a8a8; margin-top: -20px; margin-bottom: 25px; }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-container">
+      <h2 id="auth-title">Welcome Back</h2>
+      <div class="brand-subtitle" id="auth-subtitle">Login to VIT Patent Generator</div>
+      <div id="auth-error" class="error"></div>
+      <form id="auth-form">
+        <input type="text" id="username" placeholder="Username (min 3 chars)" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit" id="auth-btn">Login</button>
+      </form>
+      <div class="auth-switch">
+        <span id="auth-text">Don't have an account?</span>
+        <a id="auth-link">Register here</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isLogin = true;
+    const form = document.getElementById('auth-form');
+    const title = document.getElementById('auth-title');
+    const btn = document.getElementById('auth-btn');
+    const switchLink = document.getElementById('auth-link');
+    const switchText = document.getElementById('auth-text');
+    const errorEl = document.getElementById('auth-error');
+
+    switchLink.addEventListener('click', () => {
+      isLogin = !isLogin;
+      title.textContent = isLogin ? 'Welcome Back' : 'Create Account';
+      document.getElementById('auth-subtitle').textContent = isLogin ? 'Login to VIT Patent Generator' : 'Sign up to VIT Patent Generator';
+      btn.textContent = isLogin ? 'Login' : 'Register';
+      switchText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+      switchLink.textContent = isLogin ? "Register here" : "Login here";
+      errorEl.textContent = '';
+      errorEl.classList.remove('active');
+    });
+
+    const showError = (msg) => {
+      errorEl.textContent = msg;
+      errorEl.classList.add('active');
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      errorEl.classList.remove('active');
+      btn.disabled = true;
+
+      const endpoint = isLogin ? '/api/login' : '/api/register';
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error);
+
+        if (isLogin) {
+          window.location.href = '/';
+        } else {
+          // Auto login after register
+          const loginRes = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          if (loginRes.ok) window.location.href = '/';
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

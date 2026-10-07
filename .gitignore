@@ -1,0 +1,6 @@
+node_modules
+.env
+uploads
+patent.db
+test_output.docx
+.DS_Store
